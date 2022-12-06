@@ -86,7 +86,29 @@ def featureSearch():
         
         
     print(current_features)
+
+
+def menu():
+    print("Welcome to my Feature Selection Algorithm.")
+    file_name = str(input("Type in the name of the file to test: "))
+    print("Type the number of the algorithm you want to run.")
+    print("     1) Forward Selection")
+    print("     2) Backward Elimination")
+    algo = str(input())
+    
+    # import data and convert to list
+    data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
+    data = data_set.values.tolist()
+    
+    if (algo == "1"):
+        featureSearch()
+    elif (algo == "2"):
+        # backwardElimination()
+        print()
+    else:
+        print("Error. Invalid input")
     
     
 # featureSearch()
-print(crossValidationDemo())
+# print(crossValidationDemo())
+menu()
