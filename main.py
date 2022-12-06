@@ -2,8 +2,10 @@ import pandas as pd
 import random
 import math
 
+file = "Small_Data_96.txt"
+
 # import dataset
-data = pd.read_csv('Small_Data.txt', sep="  ", engine='python', header=None)
+data = pd.read_csv(file, sep="  ", engine='python', header=None)
     
 # for testing purposes only
 def testing():
@@ -80,5 +82,7 @@ def featureSearch():
         current_features.append(feature_to_add)
         print("On level", i, "i added feature", feature_to_add, "to current set")
         
-# featureSearch()
-crossValidationDemo()
+        
+    print(current_features)
+featureSearch()
+# crossValidationDemo()
