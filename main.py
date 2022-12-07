@@ -1,6 +1,7 @@
 import pandas as pd
 import random
 import math
+from copy import deepcopy
 
 file = "Small_Data_96.txt"
 
@@ -26,6 +27,18 @@ def testing():
     
 
 def crossValidationDemo(data, current_features, feature):
+    feature_set = current_features.copy()
+    if (feature > 0):
+        feature_set.append(feature)
+    else:
+        feature_set.remove(feature)
+    
+    data_copy = deepcopy(data)
+    for i in range(len(data)):
+        for j in range(1, len(data[i])):
+            if (j not in feature_set):
+                data_copy[i][j] = 0
+    
     correctly_classified = 0
     
     for i in range(len(data)):
@@ -35,46 +48,46 @@ def crossValidationDemo(data, current_features, feature):
         nearest_neighbor_distance = math.inf
         nearest_neighbor_location = math.inf
         
-        for k in range(len(data)):
-            print("Ask if", i, "is nearest neighbor with", k)
+        for k in range(1, len(data)):
+            #print("Ask if", i, "is nearest neighbor with", k)
             
             if (k != i):
-                #sum = sum + math.pow((object_to_classify - data[k][1:]), 2)
-                distance = math.sqrt(sum([(a-b) ** 2 for a, b in zip(object_to_classify, data[k][1:])])) # i think this should be good
+                distance = math.sqrt(sum([(a-b) ** 2 for a, b in zip(object_to_classify, data_copy[k][1:])])) # i think this should be good
+                
                 if (distance < nearest_neighbor_distance):
                     nearest_neighbor_distance = distance
                     nearest_neighbor_location = k
-                    nearest_neighbor_label = data[nearest_neighbor_location][0]
+                    nearest_neighbor_label = data_copy[nearest_neighbor_location][0]
         
         if (label_object_to_classify == nearest_neighbor_label):
             correctly_classified += 1
             
-        print("Object", i, "is class", label_object_to_classify)
-        print("Its nearest neighbor is", nearest_neighbor_location, "which is in class", nearest_neighbor_label)                    
+        #print("Object", i, "is class", label_object_to_classify)
+        #print("Its nearest neighbor is", nearest_neighbor_location, "which is in class", nearest_neighbor_label)                    
         # print("Looping over i, at the", i, "location")
         # print("The", i, "th object is in class", label_object_to_classify)
         
-    accuracy = correctly_classified / len(data)
+    accuracy = correctly_classified / len(data_copy)
     return accuracy
 
-def leaveOneOutCrossValidation(data, current_set, feature_to_add):
-    return random.random()  # for testing purposes
     
-def featureSearch():
+# function for performing forward selection search on features and dataset 
+def featureSearch(data):
     current_features = []
+    best_accuracy = 0
     
     # for loop to traverse down search tree
     for i in range(len(data)):
-        print("On the " + str(i) + "th level of the search tree")
+        # print("On the " + str(i) + "th level of the search tree")
         feature_to_add = 0
-        best_accuracy = 0
         
         # for loop to traverse through each feature
         for j in range(1, len(data[i])):
             # consider adding new feature if it has not been considered already
             if (j not in current_features):
-                print("--Considering adding the", data[i][j], "feature")
                 accuracy = crossValidationDemo(data, current_features, j)
+                # print accuracy to user when attempting to use current set of features
+                print("Using feature(s)", current_features, "accuracy is", accuracy)
                 
                 if (accuracy > best_accuracy):
                     best_accuracy = accuracy
@@ -83,10 +96,15 @@ def featureSearch():
         if (feature_to_add != 0): 
             current_features.append(feature_to_add)
             print("On level", i, "i added feature", feature_to_add, "to current set")
+            if (len(current_features) == len(data[0])):
+                break
+        else:
+            print("Accuracy decreasing, stop search here")
+            break
+    
+    # fix formatting of percent later    
+    print("Forward selection search done. The best feature subset is", current_features, "which has an accuracy of", accuracy)
         
-        
-    print(current_features)
-
 
 def menu():
     print("Welcome to my Feature Selection Algorithm.")
@@ -109,6 +127,4 @@ def menu():
         print("Error. Invalid input")
     
     
-# featureSearch()
-# print(crossValidationDemo())
-menu()
+featureSearch(data)
