@@ -1,34 +1,17 @@
 import pandas as pd
-import random
+import timeit
 import math
 from copy import deepcopy
 
-file = "Small_Data_96.txt"
+# file = "Small_Data_96.txt"
 
-# import dataset
-data_set = pd.read_csv(file, sep="  ", engine='python', header=None)
-data = data_set.values.tolist()
+# # import dataset
+# data_set = pd.read_csv(file, sep="  ", engine='python', header=None)
+# data = data_set.values.tolist()  
 
-# for testing purposes only
-def testing():
-    row = data.loc[0]
-
-    # prints len of dataset i.e. number of rows
-    print(len(data))
-
-    # testing how to iterate through dataset
-    # prints first row of dataset
-    print(row)
-    print()
-
-    # prints first column of dataset
-    for i in range(len(data)):
-        print(data[0][i])
-    
-
-def crossValidationDemo(data, current_features, feature):
+def crossValidationDemo(data, current_features, feature, add_or_remove):
     feature_set = current_features.copy()
-    if (feature > 0):
+    if (add_or_remove == "add"):
         feature_set.append(feature)
     else:
         feature_set.remove(feature)
@@ -48,7 +31,7 @@ def crossValidationDemo(data, current_features, feature):
         nearest_neighbor_distance = math.inf
         nearest_neighbor_location = math.inf
         
-        for k in range(1, len(data)):
+        for k in range(len(data)):
             #print("Ask if", i, "is nearest neighbor with", k)
             
             if (k != i):
@@ -85,9 +68,13 @@ def featureSearch(data):
         for j in range(1, len(data[i])):
             # consider adding new feature if it has not been considered already
             if (j not in current_features):
-                accuracy = crossValidationDemo(data, current_features, j)
+                accuracy = crossValidationDemo(data, current_features, j, "add")
+                # for printing purposes only
+                temp_list = current_features.copy()
+                temp_list.append(j)
+                percentage = "{:.2%}".format(accuracy)
                 # print accuracy to user when attempting to use current set of features
-                print("Using feature(s)", current_features, "accuracy is", accuracy)
+                print("\tUsing feature(s)", temp_list, "accuracy is", percentage)
                 
                 if (accuracy > best_accuracy):
                     best_accuracy = accuracy
@@ -95,36 +82,78 @@ def featureSearch(data):
         
         if (feature_to_add != 0): 
             current_features.append(feature_to_add)
-            print("On level", i, "i added feature", feature_to_add, "to current set")
-            if (len(current_features) == len(data[0])):
-                break
+            best_accuracy_percentage = "{:.2%}".format(best_accuracy)
+            print("Feature set", current_features, "was best, accuracy is", best_accuracy_percentage)
         else:
-            print("Accuracy decreasing, stop search here")
             break
     
-    # fix formatting of percent later    
-    print("Forward selection search done. The best feature subset is", current_features, "which has an accuracy of", accuracy)
+    final_accuracy_percentage = "{:.2%}".format(best_accuracy)
+    print("\nForward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
+    
+
+# function for performing forward selection search on features and dataset 
+def backwardSearch(data):
+    current_features = []
+    for i in range(1, len(data[0])):
+        current_features.append(i)
+    best_accuracy = 0
+    
+    # for loop to traverse down search tree
+    for i in range(len(data)):
+        # print("On the " + str(i) + "th level of the search tree")
+        feature_to_remove = 0
+        
+        # for loop to traverse through each feature
+        for j in range(1, len(data[i])):
+            # consider removing new feature if it has not been considered already
+            if (j in current_features):
+                accuracy = crossValidationDemo(data, current_features, j, "remove")
+                # for printing to user only
+                temp = current_features.copy()
+                temp.remove(j)
+                percentage = "{:.2%}".format(accuracy)
+                # print accuracy to user when attempting to use current set of features
+                print("\tUsing feature(s)", temp, "accuracy is", percentage)
+                
+                if (accuracy > best_accuracy):
+                    best_accuracy = accuracy
+                    feature_to_remove = j
+        
+        if (feature_to_remove != 0): 
+            current_features.remove(feature_to_remove)
+            best_accuracy_percentage = "{:.2%}".format(best_accuracy)
+            print("Feature set", current_features, "was best, accuracy is", best_accuracy_percentage)        
+        else:
+            break
+        
+    final_accuracy_percentage = "{:.2%}".format(best_accuracy)
+    print("\nBackward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
         
 
 def menu():
     print("Welcome to my Feature Selection Algorithm.")
     file_name = str(input("Type in the name of the file to test: "))
     print("Type the number of the algorithm you want to run.")
-    print("     1) Forward Selection")
-    print("     2) Backward Elimination")
+    print("\t1) Forward Selection")
+    print("\t2) Backward Elimination")
     algo = str(input())
     
     # import data and convert to list
     data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
     data = data_set.values.tolist()
     
+    print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
+    start = timeit.default_timer()
     if (algo == "1"):
-        featureSearch()
+        print("Beginning forward selection search...")
+        featureSearch(data)
     elif (algo == "2"):
-        # backwardElimination()
-        print()
+        print("Beginning backward elimination search...")
+        backwardSearch(data)
     else:
         print("Error. Invalid input")
     
-    
-featureSearch(data)
+    end = timeit.default_timer()
+    print("\n\n\nAlgorithm runtime:", end - start, "seconds.")
+
+menu()
