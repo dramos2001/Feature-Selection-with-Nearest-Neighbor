@@ -1,13 +1,7 @@
 import pandas as pd
-import timeit
 import math
 from copy import deepcopy
 
-# file = "Small_Data_96.txt"
-
-# # import dataset
-# data_set = pd.read_csv(file, sep="  ", engine='python', header=None)
-# data = data_set.values.tolist()  
 
 def crossValidationDemo(data, current_features, feature, add_or_remove):
     feature_set = current_features.copy()
@@ -25,18 +19,16 @@ def crossValidationDemo(data, current_features, feature, add_or_remove):
     correctly_classified = 0
     
     for i in range(len(data)):
-        object_to_classify = data[i][1:]
-        label_object_to_classify = data[i][0]
+        object_to_classify = data_copy[i][1:]        
+        label_object_to_classify = data_copy[i][0]
         
         nearest_neighbor_distance = math.inf
         nearest_neighbor_location = math.inf
         
-        for k in range(len(data)):
-            #print("Ask if", i, "is nearest neighbor with", k)
-            
+        for k in range(len(data)):            
             if (k != i):
-                distance = math.sqrt(sum([(a-b) ** 2 for a, b in zip(object_to_classify, data_copy[k][1:])])) # i think this should be good
-                
+                distance = sum([(a-b) ** 2 for a, b in zip(object_to_classify, data_copy[k][1:])])
+                distance = math.sqrt(distance)
                 if (distance < nearest_neighbor_distance):
                     nearest_neighbor_distance = distance
                     nearest_neighbor_location = k
@@ -44,11 +36,6 @@ def crossValidationDemo(data, current_features, feature, add_or_remove):
         
         if (label_object_to_classify == nearest_neighbor_label):
             correctly_classified += 1
-            
-        #print("Object", i, "is class", label_object_to_classify)
-        #print("Its nearest neighbor is", nearest_neighbor_location, "which is in class", nearest_neighbor_label)                    
-        # print("Looping over i, at the", i, "location")
-        # print("The", i, "th object is in class", label_object_to_classify)
         
     accuracy = correctly_classified / len(data_copy)
     return accuracy
@@ -131,6 +118,7 @@ def backwardSearch(data):
         
 
 def menu():
+    # print to user intro of program and ask for what algorithm they want to compute
     print("Welcome to my Feature Selection Algorithm.")
     file_name = str(input("Type in the name of the file to test: "))
     print("Type the number of the algorithm you want to run.")
@@ -138,12 +126,12 @@ def menu():
     print("\t2) Backward Elimination")
     algo = str(input())
     
-    # import data and convert to list
+    # import data and store values in list for easier access
     data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
     data = data_set.values.tolist()
     
+    # begin search on dataset; print to user number of features and instances in the dataset
     print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
-    start = timeit.default_timer()
     if (algo == "1"):
         print("Beginning forward selection search...")
         featureSearch(data)
@@ -152,8 +140,5 @@ def menu():
         backwardSearch(data)
     else:
         print("Error. Invalid input")
-    
-    end = timeit.default_timer()
-    print("\n\n\nAlgorithm runtime:", end - start, "seconds.")
 
 menu()
