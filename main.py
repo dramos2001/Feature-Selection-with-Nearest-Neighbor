@@ -12,7 +12,7 @@ def crossValidation(data, current_features, feature, add_or_remove):
     else:
         feature_set.remove(feature)
     
-    # features that will not be looked over can be set to 0 for efficiency and accuracy
+    # features that will not be looked over can be set to 0 for better efficiency and accuracy
     data_copy = deepcopy(data)
     for i in range(len(data)):
         for j in range(1, len(data[i])):
