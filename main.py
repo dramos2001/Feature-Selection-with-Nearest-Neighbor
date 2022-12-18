@@ -142,25 +142,28 @@ def backwardSearch(data):
     print("\nBackward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
         
 
-# program starts here 
-# outputs a menu to the user, asking them which dataset file to use and which algorithm to use
-print("Welcome to my Feature Selection Algorithm.")
-file_name = str(input("Type in the name of the file to test: "))
-print("Type the number of the algorithm you want to run.")
-print("\t1) Forward Selection")
-print("\t2) Backward Elimination")
-algo = str(input())
+def main():
+    # outputs a menu to the user, asking them which dataset file to use and which algorithm to use
+    print("Welcome to my Feature Selection Algorithm.")
+    file_name = str(input("Type in the name of the file to test: "))
+    print("Type the number of the algorithm you want to run.")
+    print("\t1) Forward Selection")
+    print("\t2) Backward Elimination")
+    algo = str(input())
 
-# import data and store values in list for easier access
-data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
-data = data_set.values.tolist()
+    # import data and store values in list for easier access
+    data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
+    data = data_set.values.tolist()
 
-# begin search on dataset; print to user number of features and instances in the dataset
-print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
-if (algo == "1"):
-    print("Beginning forward selection search...")
-    featureSearch(data)
-elif (algo == "2"):
-    print("Beginning backward elimination search...")
-    backwardSearch(data)
+    # begin search on dataset; print to user number of features and instances in the dataset
+    print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
+    if (algo == "1"):
+        print("Beginning forward selection search...")
+        featureSearch(data)
+    elif (algo == "2"):
+        print("Beginning backward elimination search...")
+        backwardSearch(data)
 
+
+if __name__ == "__main__":
+    main()
