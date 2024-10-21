@@ -1,6 +1,7 @@
 import pandas as pd
 import math
 from copy import deepcopy
+import time
 
 
 # function for calculating the accuracy of our classifier
@@ -12,46 +13,46 @@ def crossValidation(data, current_features, feature, add_or_remove):
     else:
         feature_set.remove(feature)
     
-    # features that will not be looked over can be set to 0 for better efficiency and accuracy
-    data_copy = deepcopy(data)
-    for i in range(len(data)):
-        for j in range(1, len(data[i])):
-            if (j not in feature_set):
-                data_copy[i][j] = 0
-    
     # stores the number of correctly classified instances
     correctly_classified = 0
     
     # loop through entire dataset
     for i in range(len(data)):
         # make a list of objects in dataset to classify
-        object_to_classify = data_copy[i][1:]       
+        object_to_classify = data[i][1:]       
         # save the label/classification of the previous list of objects (1 or 2)
-        label_object_to_classify = data_copy[i][0]
+        label_object_to_classify = data[i][0]
         
         nearest_neighbor_distance = math.inf
-        nearest_neighbor_location = math.inf
+        nearest_neighbor_location = -1
         
         # loop through entire dataset to determine euclidean distances and accuracy
         for k in range(len(data)):        
             # make sure not to compare the same feature to itself    
-            if (k != i):
-                # calculate euclidean distance of feature k with its nearest neighbors
-                distance = sum([(a-b) ** 2 for a, b in zip(object_to_classify, data_copy[k][1:])])
+            if k != i:
+                # calculate euclidean distance only for selected features in feature_set
+                distance = 0
+                
+                for feature_index in feature_set:
+                    # list object_to_classify adjusts for the fact that feature indices in feature_set correspond 
+                    # to columns in the data (start from 1), so we subtract 1 to align it with 0-based indexing
+                    distance += (object_to_classify[feature_index-1] - data[k][feature_index]) ** 2
+                
                 distance = math.sqrt(distance)
                 
                 # closer neighbor found to current feature so it must be saved
                 if (distance < nearest_neighbor_distance):
                     nearest_neighbor_distance = distance
                     nearest_neighbor_location = k
-                    nearest_neighbor_label = data_copy[nearest_neighbor_location][0]
+        
+        nearest_neighbor_label = data[nearest_neighbor_location][0]
         
         # nearest neighbor is of the same label/classification so we can increment num of correctly classified
         if (label_object_to_classify == nearest_neighbor_label):
             correctly_classified += 1
         
     # return accuracy to search algorithm
-    return (correctly_classified / len(data_copy))
+    return correctly_classified / len(data)
 
     
 # function for performing forward selection search on features in dataset 
@@ -146,24 +147,38 @@ def main():
     # outputs a menu to the user, asking them which dataset file to use and which algorithm to use
     print("Welcome to my Feature Selection Algorithm.")
     file_name = str(input("Type in the name of the file to test: "))
+    # import data and store values in list for easier access
+    # check that the inputted file exists
+    try:
+        data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
+        data = data_set.values.tolist()
+        print(type(data))
+    except FileNotFoundError:
+        print("File not found. Please check the filename and try again.")
+        return
+    
+    # user is now asked to select the algorithm
     print("Type the number of the algorithm you want to run.")
     print("\t1) Forward Selection")
     print("\t2) Backward Elimination")
     algo = str(input())
-
-    # import data and store values in list for easier access
-    data_set = pd.read_csv(file_name, sep="  ", engine='python', header=None)
-    data = data_set.values.tolist()
+    # check that input is valid i.e. '1' or '2'
+    if algo not in ['1', '2']:
+        print("Invalid selection. Please choose 1 for Forward Selection or 2 for Backward Elimination")
+        return
 
     # begin search on dataset; print to user number of features and instances in the dataset
     print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
+    start_time = time.time()  # get start time
     if (algo == "1"):
         print("Beginning forward selection search...")
         featureSearch(data)
     elif (algo == "2"):
         print("Beginning backward elimination search...")
         backwardSearch(data)
-
+    end_time = time.time()  # get finish time
+    # print time taken to compute algorithm to user
+    print(f"Time taken: {end_time - start_time:.2f} seconds...")
 
 if __name__ == "__main__":
     main()
