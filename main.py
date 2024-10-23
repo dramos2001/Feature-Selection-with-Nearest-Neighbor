@@ -1,8 +1,26 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import math
-from copy import deepcopy
 import time
 
+
+# function to plot data points from both feature sets chosen by algorithm
+def scatterPlot(data, features):
+    feature1 = features[0]
+    feature2 = features[1]
+    
+    class_1 = [row for row in data if row[0] == 1.0]
+    class_2 = [row for row in data if row[0] == 2.0]
+    
+    plt.scatter([row[feature1] for row in class_1], [row[feature2] for row in class_1], color='blue', label='Class 1')
+    plt.scatter([row[feature1] for row in class_2], [row[feature2] for row in class_2], color='red', label='Class 2')
+    
+    plt.title(f'Scatter Plot of Feature {feature1} vs Feature {feature2}')
+    plt.xlabel(f'Feature {feature1}')
+    plt.ylabel(f'Feature {feature2}')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 # function for calculating the accuracy of our classifier
 def crossValidation(data, current_features, feature, add_or_remove):
@@ -57,6 +75,8 @@ def crossValidation(data, current_features, feature, add_or_remove):
     
 # function for performing forward selection search on features in dataset 
 def featureSearch(data):
+    start_time = time.time()
+    
     # create an empty feature set list; we will be adding features to this list iteratively
     current_features = []
     best_accuracy = 0
@@ -96,10 +116,17 @@ def featureSearch(data):
     # search is done so we can output the final accuracy and feature list to the user
     final_accuracy_percentage = "{:.2%}".format(best_accuracy)
     print("\nForward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
+    # calculate time taken to compute algorithm; output to console
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time:.2f} seconds...")
+    
+    scatterPlot(data, current_features)
     
 
 # function for performing forward selection search on features and dataset 
 def backwardSearch(data):
+    start_time = time.time()
+    
     # create feature list containing all possible features; we will be removing features one by one
     current_features = []
     for i in range(1, len(data[0])):
@@ -141,6 +168,11 @@ def backwardSearch(data):
     # backward search is done so we can output the best feature set list for this dataset and its accuracy
     final_accuracy_percentage = "{:.2%}".format(best_accuracy)
     print("\nBackward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
+    # calculate time taken to compute algorithm; output to console
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time:.2f} seconds...")
+    
+    scatterPlot(data, current_features)
         
 
 def main():
@@ -169,16 +201,12 @@ def main():
 
     # begin search on dataset; print to user number of features and instances in the dataset
     print("\nThis dataset has", len(data[0])-1, "features, with", len(data), "instances.")
-    start_time = time.time()  # get start time
     if (algo == "1"):
         print("Beginning forward selection search...")
         featureSearch(data)
     elif (algo == "2"):
         print("Beginning backward elimination search...")
         backwardSearch(data)
-    end_time = time.time()  # get finish time
-    # print time taken to compute algorithm to user
-    print(f"Time taken: {end_time - start_time:.2f} seconds...")
 
 if __name__ == "__main__":
     main()
