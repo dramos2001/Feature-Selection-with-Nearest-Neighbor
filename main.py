@@ -55,13 +55,14 @@ def crossValidation(data, current_features, feature, add_or_remove):
                     # list object_to_classify adjusts for the fact that feature indices in feature_set correspond 
                     # to columns in the data (start from 1), so we subtract 1 to align it with 0-based indexing
                     distance += (object_to_classify[feature_index-1] - data[k][feature_index]) ** 2
-                
-                distance = math.sqrt(distance)
-                
+                                
                 # closer neighbor found to current feature so it must be saved
                 if (distance < nearest_neighbor_distance):
                     nearest_neighbor_distance = distance
                     nearest_neighbor_location = k
+        
+        if nearest_neighbor_location == -1:  # safeguard
+            continue
         
         nearest_neighbor_label = data[nearest_neighbor_location][0]
         
@@ -131,48 +132,54 @@ def backwardSearch(data):
     current_features = []
     for i in range(1, len(data[0])):
         current_features.append(i)
-    best_accuracy = 0
+        
+    best_features = current_features.copy()
+    global_best_accuracy = 0
     
-    # for loop to traverse down search tree
-    for i in range(len(data)):
+    # loop to traverse down search tree and find best features
+    while len(current_features) > 1:
+        best_accuracy = 0
         feature_to_remove = 0
+        best_subset = []
         
-        # for loop to traverse through each feature
-        for j in range(1, len(data[i])):
-            # consider removing new feature if it has not been considered already
-            if (j in current_features):
-                # compute accuracy of new feature set list using cross validation function
-                # making sure to note we are removing a feature from the feature list
-                accuracy = crossValidation(data, current_features, j, "remove")
-                # for printing feature set to user only
-                temp = current_features.copy()
-                temp.remove(j)
-                percentage = "{:.2%}".format(accuracy)
-                # print accuracy to user when attempting to use current set of features
-                print("\tUsing feature(s)", temp, "accuracy is", percentage)
+        for j in current_features:
+            # compute accuracy of new feature-set list using cross validation function
+            # make sure to note we are removing a feature from the feature list
+            accuracy = crossValidation(data, current_features, j, "remove")
+            # for printing feature subset to console
+            temp_list = current_features.copy()
+            temp_list.remove(j)
+            percentage = "{:.2%}".format(accuracy)
+            # print accuracy to user when attempting to use current feature subset
+            print("\tUsing feature(s)", temp_list, "accuracy is", percentage)
+            
+            # if new best accuracy is computed, save it and remove feature j from current features list
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                feature_to_remove = j
+                best_subset = temp_list
                 
-                # new best accuracy is computed so we can save it and note to remove feature j
-                if (accuracy > best_accuracy):
-                    best_accuracy = accuracy
-                    feature_to_remove = j
-        
-        # remove feature j from feature set list, making sure it is not empty/zero
-        if (feature_to_remove != 0): 
+        # remove feature j from feature subset; make sure it is not empty/zero
+        if feature_to_remove != 0:
             current_features.remove(feature_to_remove)
-            best_accuracy_percentage = "{:.2%}".format(best_accuracy)
-            # output new best feature set list and its accuracy
-            print("Feature set", current_features, "was best, accuracy is", best_accuracy_percentage)        
+            best_percentage = "{:.2%}".format(best_accuracy)
+            print("Feature set", current_features, "was best, accuracy is", best_percentage)
+            
+            # update global best subset and accuracy if this round improved
+            if best_accuracy > global_best_accuracy:
+                global_best_accuracy = best_accuracy
+                best_features = best_subset
         else:
             break
         
-    # backward search is done so we can output the best feature set list for this dataset and its accuracy
-    final_accuracy_percentage = "{:.2%}".format(best_accuracy)
-    print("\nBackward selection search done. The best feature subset is", current_features, "which has an accuracy of", final_accuracy_percentage)
-    # calculate time taken to compute algorithm; output to console
+    
+    # backward search is done so we can output the best feature subset and its accuracy
+    print("\nBackward elimination done. The best feature subset is", best_features, f"which has an accuracy of {global_best_accuracy:.2%}")
+    # calculate time take to compute algorithm and output to console
     end_time = time.time()
     print(f"Time taken: {end_time - start_time:.2f} seconds...")
     
-    scatterPlot(data, current_features)
+    scatterPlot(data, best_features)
         
 
 def main():
